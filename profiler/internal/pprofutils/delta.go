@@ -7,8 +7,8 @@ package pprofutils
 
 import (
 	"errors"
-	"fmt"
 	"github.com/google/pprof/profile"
+	"gopkg.in/DataDog/dd-trace-go.v1/internal/log"
 	"runtime/debug"
 	"unsafe"
 )
@@ -67,17 +67,17 @@ func (d Delta) Convert(a, b *profile.Profile) (p *profile.Profile, e error) {
 				Error() string
 			}
 			if a, ok := r.(addressable); ok {
-				fmt.Printf("faulty pointer: %v\n", unsafe.Pointer(a.Addr()))
+				log.Error("faulty pointer: %v\n", unsafe.Pointer(a.Addr()))
 			}
-			fmt.Printf("faulty pointer a: %#v, b:%#v", a, b)
+			log.Error("faulty pointer a: %#v, b:%#v\n", a, b)
 			for i, s := range a.Sample {
 				for j, l := range s.Location {
-					fmt.Printf("faulty pointer profile:a sample:%d location:%d locationadd:%v locationval:%#v", i, j, unsafe.Pointer(l), *l)
+					log.Error("faulty pointer profile:a sample:%d location:%d locationadd:%v locationval:%#v\n", i, j, unsafe.Pointer(l), *l)
 				}
 			}
 			for i, s := range b.Sample {
 				for j, l := range s.Location {
-					fmt.Printf("faulty pointer profile:b sample:%d location:%d locationadd:%v locationval:%#v", i, j, unsafe.Pointer(l), *l)
+					log.Error("faulty pointer profile:b sample:%d location:%d locationadd:%v locationval:%#v\n", i, j, unsafe.Pointer(l), *l)
 				}
 			}
 			e = r.(error)
