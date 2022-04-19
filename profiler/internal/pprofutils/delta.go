@@ -7,8 +7,10 @@ package pprofutils
 
 import (
 	"errors"
-
+	"fmt"
 	"github.com/google/pprof/profile"
+	"runtime/debug"
+	"unsafe"
 )
 
 // Delta describes how to compute the delta between two profiles and implements
@@ -30,7 +32,8 @@ type Delta struct {
 // profile. Samples that end up with a delta of 0 are dropped. WARNING: Profile
 // a will be mutated by this function. You should pass a copy if that's
 // undesirable.
-func (d Delta) Convert(a, b *profile.Profile) (*profile.Profile, error) {
+func (d Delta) Convert(a, b *profile.Profile) (p *profile.Profile, e error) {
+	defer debug.SetPanicOnFault(debug.SetPanicOnFault(true))
 	ratios := make([]float64, len(a.SampleType))
 
 	found := 0
@@ -57,7 +60,29 @@ func (d Delta) Convert(a, b *profile.Profile) (*profile.Profile, error) {
 	}
 
 	a.ScaleN(ratios)
-
+	defer func() {
+		if r := recover(); r != nil {
+			type addressable interface {
+				Addr() uintptr
+				Error() string
+			}
+			if a, ok := r.(addressable); ok {
+				fmt.Printf("faulty pointer: %v\n", unsafe.Pointer(a.Addr()))
+			}
+			fmt.Printf("a: %#v, b:%#v", a, b)
+			for i, s := range a.Sample {
+				for j, l := range s.Location {
+					fmt.Printf("profile:a sample:%d location:%d locationadd:%v locationval:%#v", i, j, unsafe.Pointer(l), *l)
+				}
+			}
+			for i, s := range b.Sample {
+				for j, l := range s.Location {
+					fmt.Printf("profile:b sample:%d location:%d locationadd:%v locationval:%#v", i, j, unsafe.Pointer(l), *l)
+				}
+			}
+			e = r.(error)
+		}
+	}()
 	delta, err := profile.Merge([]*profile.Profile{a, b})
 	if err != nil {
 		return nil, err
