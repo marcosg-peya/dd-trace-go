@@ -69,15 +69,15 @@ func (d Delta) Convert(a, b *profile.Profile) (p *profile.Profile, e error) {
 			if a, ok := r.(addressable); ok {
 				fmt.Printf("faulty pointer: %v\n", unsafe.Pointer(a.Addr()))
 			}
-			fmt.Printf("a: %#v, b:%#v", a, b)
+			fmt.Printf("faulty pointer a: %#v, b:%#v", a, b)
 			for i, s := range a.Sample {
 				for j, l := range s.Location {
-					fmt.Printf("profile:a sample:%d location:%d locationadd:%v locationval:%#v", i, j, unsafe.Pointer(l), *l)
+					fmt.Printf("faulty pointer profile:a sample:%d location:%d locationadd:%v locationval:%#v", i, j, unsafe.Pointer(l), *l)
 				}
 			}
 			for i, s := range b.Sample {
 				for j, l := range s.Location {
-					fmt.Printf("profile:b sample:%d location:%d locationadd:%v locationval:%#v", i, j, unsafe.Pointer(l), *l)
+					fmt.Printf("faulty pointer profile:b sample:%d location:%d locationadd:%v locationval:%#v", i, j, unsafe.Pointer(l), *l)
 				}
 			}
 			e = r.(error)
